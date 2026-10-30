@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Campus Placement Management System | Enterprise Portal</title>
+  <meta name="description" content="Production-grade Campus Placement Management System built with Node.js, Express, and Native MongoDB Driver.">
+  
+  <!-- Modern Typography Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Custom Pure CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- App Container Layout -->
+  <div class="app-layout">
+    
+    <!-- Left Navigation Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="brand-section">
+        <div class="brand-logo">
+          <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+        <div class="brand-text">
+          <h2>Place<span>Pro</span></h2>
+          <span class="badge-native">MongoDB Native</span>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <div class="nav-label">MAIN NAVIGATION</div>
+        <button class="nav-item active" data-tab="tab-overview" id="nav-overview">
+          <i class="fa-solid fa-chart-pie"></i>
+          <span>Analytics Overview</span>
+        </button>
+        <button class="nav-item" data-tab="tab-students" id="nav-students">
+          <i class="fa-solid fa-user-graduate"></i>
+          <span>Student Directory</span>
+          <span class="nav-counter" id="sidebar-student-count">0</span>
+        </button>
+        <button class="nav-item" data-tab="tab-drives" id="nav-drives">
+          <i class="fa-solid fa-briefcase"></i>
+          <span>Placement Drives</span>
+          <span class="nav-counter live" id="sidebar-drives-count">0</span>
+        </button>
+        <button class="nav-item" data-tab="tab-pipeline" id="nav-pipeline">
+          <i class="fa-solid fa-network-wired"></i>
+          <span>Application Board</span>
+        </button>
+      </nav>
+
+      <!-- Sidebar Footer: System Status -->
+      <div class="sidebar-footer">
+        <div class="status-card">
+          <div class="status-indicator-dot online"></div>
+          <div class="status-details">
+            <p class="status-title">Native Driver 6.x</p>
+            <p class="status-desc" id="db-pool-status">Pool: 20 Max / 5 Min</p>
+          </div>
+        </div>
+        <button class="btn-seed" id="btn-quick-seed" title="Seed Demo Records">
+          <i class="fa-solid fa-seedling"></i> Seed Sample Data
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-wrapper">
+      
+      <!-- Top Application Header -->
+      <header class="top-header">
+        <div class="header-left">
+          <button class="sidebar-toggle-btn" id="sidebar-toggle" aria-label="Toggle Sidebar">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <div class="page-title-group">
+            <h1 id="page-heading">Analytics & Metrics</h1>
+            <p id="page-subheading">Live campus placement overview, real-time KPI stats & distribution</p>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <!-- Live mini stats bar -->
+          <div class="header-stat-pill">
+            <i class="fa-solid fa-award"></i>
+            <span>Placement Rate:</span>
+            <strong id="header-placement-rate">0%</strong>
+          </div>
+          <div class="header-stat-pill highlight">
+            <i class="fa-solid fa-bolt"></i>
+            <span>Active Drives:</span>
+            <strong id="header-active-drives">0</strong>
+          </div>
+
+          <!-- Quick Action Buttons -->
+          <div class="header-actions">
+            <button class="btn btn-secondary" id="btn-open-bulk-modal">
+              <i class="fa-solid fa-file-import"></i> Bulk Upload
+            </button>
+            <button class="btn btn-secondary" id="btn-open-create-drive">
+              <i class="fa-solid fa-building-circle-check"></i> New Drive
+            </button>
+            <button class="btn btn-primary" id="btn-open-add-student">
+              <i class="fa-solid fa-user-plus"></i> Add Student
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Tab Content Area -->
+      <div class="tab-content-container">
+
+        <!-- TAB 1: OVERVIEW & ANALYTICS -->
+        <section class="tab-pane active" id="tab-overview">
+          
+          <!-- KPI Cards Grid -->
+          <div class="kpi-grid">
+            <div class="kpi-card card-glow-indigo">
+              <div class="kpi-icon-wrap indigo">
+                <i class="fa-solid fa-users"></i>
+              </div>
+              <div class="kpi-content">
+                <span class="kpi-label">Total Registered</span>
+                <h3 class="kpi-value" id="kpi-total-students">0</h3>
+                <span class="kpi-subtext" id="kpi-unplaced-students">0 Unplaced</span>
+              </div>
+              <div class="kpi-badge indigo">Batch 2026</div>
+            </div>
+
+            <div class="kpi-card card-glow-emerald">
+              <div class="kpi-icon-wrap emerald">
+                <i class="fa-solid fa-circle-check"></i>
+              </div>
+              <div class="kpi-content">
+                <span class="kpi-label">Placement Rate</span>
+                <h3 class="kpi-value text-emerald" id="kpi-placement-rate">0%</h3>
+                <span class="kpi-subtext" id="kpi-placed-students">0 Students Placed</span>
+              </div>
+              <div class="kpi-badge emerald">Campus Success</div>
+            </div>
+
+            <div class="kpi-card card-glow-cyan">
+              <div class="kpi-icon-wrap cyan">
+                <i class="fa-solid fa-indian-rupee-sign"></i>
+              </div>
+              <div class="kpi-content">
+                <span class="kpi-label">Highest Package</span>
+                <h3 class="kpi-value text-cyan" id="kpi-highest-ctc">₹0 LPA</h3>
+                <span class="kpi-subtext" id="kpi-avg-ctc">Avg: ₹0 LPA</span>
+              </div>
+              <div class="kpi-badge cyan">Top CTC</div>
+            </div>
+
+            <div class="kpi-card card-glow-amber">
+              <div class="kpi-icon-wrap amber">
+                <i class="fa-solid fa-briefcase"></i>
+              </div>
+              <div class="kpi-content">
+                <span class="kpi-label">Active Drives</span>
+                <h3 class="kpi-value text-amber" id="kpi-active-drives">0</h3>
+                <span class="kpi-subtext" id="kpi-total-drives">0 Total Companies</span>
+              </div>
+              <div class="kpi-badge amber">Open for Hiring</div>
+            </div>
+          </div>
+
+          <!-- Analytics Charts & Distributions -->
+          <div class="analytics-row">
+            
+            <!-- Branch-wise Distribution -->
+            <div class="dashboard-panel branch-panel">
+              <div class="panel-header">
+                <div>
+                  <h3><i class="fa-solid fa-chart-simple text-indigo"></i> Branch-wise Placement Ratio</h3>
+                  <p>Aggregate performance computed via MongoDB <code>$group</code> & <code>$facet</code></p>
+                </div>
+              </div>
+              <div class="panel-body" id="branch-bars-container">
+                <div class="skeleton-loader-bar"></div>
+                <div class="skeleton-loader-bar"></div>
+                <div class="skeleton-loader-bar"></div>
+              </div>
+            </div>
+
+            <!-- Top Recruiting Companies -->
+            <div class="dashboard-panel companies-panel">
+              <div class="panel-header">
+                <div>
+                  <h3><i class="fa-solid fa-trophy text-amber"></i> Top Recruiters</h3>
+                  <p>Highest campus offers and package records</p>
+                </div>
+              </div>
+              <div class="panel-body">
+                <div class="companies-list" id="top-companies-list">
+                  <div class="skeleton-loader-card"></div>
+                  <div class="skeleton-loader-card"></div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Bottom Row: In-Demand Skills & Quick Activity -->
+          <div class="analytics-row">
+            
+            <div class="dashboard-panel">
+              <div class="panel-header">
+                <h3><i class="fa-solid fa-code text-cyan"></i> Most In-Demand Skills</h3>
+                <span class="badge-neutral">From Placed Profiles</span>
+              </div>
+              <div class="panel-body">
+                <div class="skills-cloud" id="top-skills-cloud">
+                  <!-- Rendered dynamically -->
+                </div>
+              </div>
+            </div>
+
+            <div class="dashboard-panel">
+              <div class="panel-header">
+                <h3><i class="fa-solid fa-bolt text-emerald"></i> Application Stages Summary</h3>
+                <span class="badge-neutral">Live Pipeline</span>
+              </div>
+              <div class="panel-body">
+                <div class="stages-summary-grid" id="stages-summary-grid">
+                  <!-- Rendered dynamically -->
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- TAB 2: STUDENT DIRECTORY -->
+        <section class="tab-pane" id="tab-students">
+          
+          <!-- Filters & Controls Bar -->
+          <div class="filter-card">
+            <div class="filter-grid">
+              
+              <!-- Search Input -->
+              <div class="filter-group flex-2">
+                <label for="filter-student-search"><i class="fa-solid fa-magnifying-glass"></i> Search</label>
+                <div class="input-icon-wrap">
+                  <input type="text" id="filter-student-search" placeholder="Search by name, roll no, or skill...">
+                  <button class="clear-input-btn" id="clear-search-btn" style="display:none;"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+              </div>
+
+              <!-- Branch Filter -->
+              <div class="filter-group">
+                <label for="filter-student-branch"><i class="fa-solid fa-code-branch"></i> Branch</label>
+                <select id="filter-student-branch">
+                  <option value="ALL">All Branches</option>
+                  <option value="CSE">Computer Science (CSE)</option>
+                  <option value="IT">Information Tech (IT)</option>
+                  <option value="ECE">Electronics (ECE)</option>
+                  <option value="EE">Electrical (EE)</option>
+                  <option value="ME">Mechanical (ME)</option>
+                  <option value="CIVIL">Civil Engineering</option>
+                </select>
+              </div>
+
+              <!-- Status Filter -->
+              <div class="filter-group">
+                <label for="filter-student-status"><i class="fa-solid fa-tag"></i> Placement Status</label>
+                <select id="filter-student-status">
+                  <option value="ALL">All Statuses</option>
+                  <option value="Placed">Placed</option>
+                  <option value="In-Process">In-Process</option>
+                  <option value="Unplaced">Unplaced</option>
+                </select>
+              </div>
+
+              <!-- Min CGPA Slider -->
+              <div class="filter-group">
+                <div class="slider-label-row">
+                  <label for="filter-student-cgpa"><i class="fa-solid fa-sliders"></i> Min CGPA</label>
+                  <span class="slider-val" id="filter-cgpa-display">0.0</span>
+                </div>
+                <input type="range" id="filter-student-cgpa" min="0" max="10" step="0.5" value="0">
+              </div>
+
+              <!-- Reset Action -->
+              <div class="filter-group filter-actions">
+                <label>&nbsp;</label>
+                <button class="btn btn-secondary btn-icon-only" id="btn-reset-filters" title="Reset Filters">
+                  <i class="fa-solid fa-arrow-rotate-left"></i> Reset
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Students Data Table Container -->
+          <div class="table-card">
+            <div class="table-responsive">
+              <table class="data-table" id="students-table">
+                <thead>
+                  <tr>
+                    <th>Student Details</th>
+                    <th>Roll Number</th>
+                    <th>Branch</th>
+                    <th>CGPA</th>
+                    <th>Key Skills</th>
+                    <th>Status</th>
+                    <th>Company / Package</th>
+                    <th class="text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="students-table-body">
+                  <!-- Injected via JavaScript -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Table Pagination & Page Size -->
+            <div class="pagination-bar" id="students-pagination">
+              <div class="pagination-info" id="pagination-info">
+                Showing 0 of 0 students
+              </div>
+              <div class="pagination-controls">
+                <label for="students-page-size" class="text-muted">Rows:</label>
+                <select id="students-page-size">
+                  <option value="5">5</option>
+                  <option value="10" selected>10</option>
+                  <option value="20">20</option>
+                  <option value="50">50</option>
+                </select>
+                <button class="btn-page" id="btn-prev-page" disabled><i class="fa-solid fa-chevron-left"></i></button>
+                <span class="page-indicator" id="current-page-indicator">1 / 1</span>
+                <button class="btn-page" id="btn-next-page" disabled><i class="fa-solid fa-chevron-right"></i></button>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- TAB 3: PLACEMENT DRIVES -->
+        <section class="tab-pane" id="tab-drives">
+          
+          <div class="drives-filter-bar">
+            <div class="tab-pill-filters">
+              <button class="filter-pill active" data-drive-status="ALL">All Drives</button>
+              <button class="filter-pill" data-drive-status="Active">Active Hiring</button>
+              <button class="filter-pill" data-drive-status="Closed">Closed</button>
+            </div>
+            
+            <div class="drives-search-wrap">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="filter-drives-search" placeholder="Search company or role...">
+            </div>
+          </div>
+
+          <!-- Drives Cards Grid -->
+          <div class="drives-grid" id="drives-grid-container">
+            <!-- Rendered dynamically -->
+          </div>
+
+        </section>
+
+        <!-- TAB 4: APPLICATION PIPELINE BOARD -->
+        <section class="tab-pane" id="tab-pipeline">
+          
+          <!-- Board Controls & Drive Selector -->
+          <div class="board-header-bar">
+            <div class="drive-select-group">
+              <label for="pipeline-drive-select"><i class="fa-solid fa-building"></i> Select Placement Drive:</label>
+              <select id="pipeline-drive-select">
+                <option value="">Loading drives...</option>
+              </select>
+            </div>
+            <div class="drive-banner-stats" id="pipeline-drive-banner" style="display:none;">
+              <span class="pill pill-ctc" id="banner-ctc">₹0 LPA</span>
+              <span class="pill pill-cgpa" id="banner-min-cgpa">Min CGPA: 0.0</span>
+              <span class="pill pill-branches" id="banner-branches">All Branches</span>
+              <span class="pill pill-deadline" id="banner-deadline">Deadline</span>
+            </div>
+          </div>
+
+          <!-- Kanban Pipeline Columns -->
+          <div class="kanban-board">
+            
+            <!-- Column 1: Applied -->
+            <div class="kanban-column" id="col-Applied">
+              <div class="kanban-col-header applied">
+                <div class="col-title">
+                  <span class="col-dot dot-applied"></span>
+                  <h4>Applied</h4>
+                </div>
+                <span class="col-count" id="count-Applied">0</span>
+              </div>
+              <div class="kanban-cards-wrap" id="cards-Applied">
+                <!-- Injected via JavaScript -->
+              </div>
+            </div>
+
+            <!-- Column 2: Shortlisted -->
+            <div class="kanban-column" id="col-Shortlisted">
+              <div class="kanban-col-header shortlisted">
+                <div class="col-title">
+                  <span class="col-dot dot-shortlisted"></span>
+                  <h4>Shortlisted</h4>
+                </div>
+                <span class="col-count" id="count-Shortlisted">0</span>
+              </div>
+              <div class="kanban-cards-wrap" id="cards-Shortlisted">
+                <!-- Injected via JavaScript -->
+              </div>
+            </div>
+
+            <!-- Column 3: Selected -->
+            <div class="kanban-column" id="col-Selected">
+              <div class="kanban-col-header selected">
+                <div class="col-title">
+                  <span class="col-dot dot-selected"></span>
+                  <h4>Selected (Placed)</h4>
+                </div>
+                <span class="col-count" id="count-Selected">0</span>
+              </div>
+              <div class="kanban-cards-wrap" id="cards-Selected">
+                <!-- Injected via JavaScript -->
+              </div>
+            </div>
+
+            <!-- Column 4: Rejected -->
+            <div class="kanban-column" id="col-Rejected">
+              <div class="kanban-col-header rejected">
+                <div class="col-title">
+                  <span class="col-dot dot-rejected"></span>
+                  <h4>Rejected</h4>
+                </div>
+                <span class="col-count" id="count-Rejected">0</span>
+              </div>
+              <div class="kanban-cards-wrap" id="cards-Rejected">
+                <!-- Injected via JavaScript -->
+              </div>
+            </div>
+
+          </div>
+
+        </section>
+
+      </div>
+    </main>
+
+  </div>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- Modal 1: Add / Edit Student -->
+  <div class="modal-backdrop" id="student-modal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 id="student-modal-title"><i class="fa-solid fa-user-plus text-indigo"></i> Add New Student</h3>
+        <button class="modal-close-btn" data-close-modal="student-modal">&times;</button>
+      </div>
+      <form id="student-form">
+        <input type="hidden" id="student-form-id">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="student-name">Full Name *</label>
+              <input type="text" id="student-name" required placeholder="e.g. Aryan Sharma">
+            </div>
+            <div class="form-group flex-1">
+              <label for="student-roll">Roll Number *</label>
+              <input type="text" id="student-roll" required placeholder="e.g. 21CS045">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="student-email">Campus Email *</label>
+              <input type="email" id="student-email" required placeholder="e.g. aryan.sharma@campus.edu">
+            </div>
+            <div class="form-group flex-1">
+              <label for="student-branch">Branch *</label>
+              <select id="student-branch" required>
+                <option value="CSE">Computer Science (CSE)</option>
+                <option value="IT">Information Tech (IT)</option>
+                <option value="ECE">Electronics (ECE)</option>
+                <option value="EE">Electrical (EE)</option>
+                <option value="ME">Mechanical (ME)</option>
+                <option value="CIVIL">Civil Engineering</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="student-cgpa">CGPA (0 - 10) *</label>
+              <input type="number" step="0.01" min="0" max="10" id="student-cgpa" required placeholder="e.g. 8.75">
+            </div>
+            <div class="form-group flex-1">
+              <label for="student-status">Placement Status</label>
+              <select id="student-status">
+                <option value="Unplaced">Unplaced</option>
+                <option value="In-Process">In-Process</option>
+                <option value="Placed">Placed</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="student-skills">Skills (Comma-separated)</label>
+            <input type="text" id="student-skills" placeholder="e.g. React, Node.js, MongoDB, Python, Docker">
+          </div>
+
+          <div class="form-row placement-extra-fields" id="placement-extra-fields" style="display:none;">
+            <div class="form-group flex-1">
+              <label for="student-company">Placed Company</label>
+              <input type="text" id="student-company" placeholder="e.g. Microsoft">
+            </div>
+            <div class="form-group flex-1">
+              <label for="student-package">Package (LPA)</label>
+              <input type="number" step="0.1" id="student-package" placeholder="e.g. 24.5">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="student-resume">Resume URL / Link</label>
+            <input type="url" id="student-resume" placeholder="e.g. https://drive.google.com/resume.pdf">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close-modal="student-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-student">
+            <i class="fa-solid fa-check"></i> Save Student
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Create / Edit Placement Drive -->
+  <div class="modal-backdrop" id="drive-modal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 id="drive-modal-title"><i class="fa-solid fa-briefcase text-emerald"></i> Create Placement Drive</h3>
+        <button class="modal-close-btn" data-close-modal="drive-modal">&times;</button>
+      </div>
+      <form id="drive-form">
+        <input type="hidden" id="drive-form-id">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="drive-company">Company Name *</label>
+              <input type="text" id="drive-company" required placeholder="e.g. Amazon Web Services">
+            </div>
+            <div class="form-group flex-1">
+              <label for="drive-role">Job Role *</label>
+              <input type="text" id="drive-role" required placeholder="e.g. Software Development Engineer">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="drive-ctc">Annual CTC (LPA) *</label>
+              <input type="number" step="0.1" min="0" id="drive-ctc" required placeholder="e.g. 24.0">
+            </div>
+            <div class="form-group flex-1">
+              <label for="drive-min-cgpa">Minimum Cutoff CGPA *</label>
+              <input type="number" step="0.01" min="0" max="10" id="drive-min-cgpa" required placeholder="e.g. 7.5">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="drive-deadline">Application Deadline *</label>
+              <input type="datetime-local" id="drive-deadline" required>
+            </div>
+            <div class="form-group flex-1">
+              <label for="drive-status">Hiring Status</label>
+              <select id="drive-status">
+                <option value="Active">Active</option>
+                <option value="Closed">Closed</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="drive-branches">Eligible Branches (Hold Ctrl/Cmd to select multiple)</label>
+            <select id="drive-branches" multiple class="multi-select-box">
+              <option value="CSE" selected>CSE - Computer Science</option>
+              <option value="IT" selected>IT - Information Tech</option>
+              <option value="ECE">ECE - Electronics</option>
+              <option value="EE">EE - Electrical</option>
+              <option value="ME">ME - Mechanical</option>
+              <option value="CIVIL">CIVIL - Civil Engineering</option>
+            </select>
+            <small class="form-hint">Tip: Select none to make open to all branches.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="drive-desc">Drive Description & Requirements</label>
+            <textarea id="drive-desc" rows="3" placeholder="Job description, interview rounds, prerequisites..."></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close-modal="drive-modal">Cancel</button>
+          <button type="submit" class="btn btn-emerald" id="btn-save-drive">
+            <i class="fa-solid fa-check"></i> Publish Drive
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 3: Apply Student to Drive -->
+  <div class="modal-backdrop" id="apply-modal" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-paper-plane text-indigo"></i> Apply Student to Drive</h3>
+        <button class="modal-close-btn" data-close-modal="apply-modal">&times;</button>
+      </div>
+      <form id="apply-form">
+        <input type="hidden" id="apply-drive-id">
+        <div class="modal-body">
+          <div class="apply-drive-summary" id="apply-drive-summary">
+            <!-- Drive summary inserted dynamically -->
+          </div>
+
+          <div class="form-group">
+            <label for="apply-student-select">Select Student *</label>
+            <select id="apply-student-select" required>
+              <option value="">-- Choose Candidate --</option>
+            </select>
+            <div class="eligibility-notice" id="apply-eligibility-msg"></div>
+          </div>
+
+          <div class="form-group">
+            <label for="apply-notes">Referral / Notes (Optional)</label>
+            <textarea id="apply-notes" rows="2" placeholder="e.g. Cleared internal coding test round with 95%"></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close-modal="apply-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-submit-apply">
+            <i class="fa-solid fa-arrow-right"></i> Submit Application
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 4: Bulk Upload Modal -->
+  <div class="modal-backdrop" id="bulk-modal" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-file-arrow-up text-cyan"></i> Bulk Upload Students</h3>
+        <button class="modal-close-btn" data-close-modal="bulk-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-intro">
+          Paste JSON records below. The backend uses native MongoDB <code>insertMany({ ordered: false })</code> to import valid records and report duplicates.
+        </p>
+
+        <div class="bulk-template-actions">
+          <button class="btn btn-secondary btn-sm" id="btn-load-json-sample">
+            <i class="fa-solid fa-code"></i> Load Sample JSON
+          </button>
+          <button class="btn btn-secondary btn-sm" id="btn-clear-bulk">
+            <i class="fa-solid fa-trash-can"></i> Clear
+          </button>
+        </div>
+
+        <div class="form-group">
+          <label for="bulk-json-input">JSON Array Content:</label>
+          <textarea id="bulk-json-input" class="code-textarea" rows="10" placeholder='[
+  {
+    "name": "Karan Singhania",
+    "rollNo": "21CS099",
+    "email": "karan.s@campus.edu",
+    "branch": "CSE",
+    "cgpa": 8.4,
+    "skills": ["Python", "Flask", "PostgreSQL"],
+    "placementStatus": "Unplaced"
+  }
+]'></textarea>
+        </div>
+
+        <div class="bulk-result-banner" id="bulk-result-banner" style="display:none;"></div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-close-modal="bulk-modal">Close</button>
+        <button type="button" class="btn btn-cyan" id="btn-submit-bulk">
+          <i class="fa-solid fa-cloud-arrow-up"></i> Upload & Import
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 5: Student Details View -->
+  <div class="modal-backdrop" id="student-view-modal" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-id-badge text-indigo"></i> Student Profile</h3>
+        <button class="modal-close-btn" data-close-modal="student-view-modal">&times;</button>
+      </div>
+      <div class="modal-body" id="student-view-body">
+        <!-- Rendered dynamically -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-close-modal="student-view-modal">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+  <!-- Vanilla JavaScript App Client -->
+  <script src="app.js"></script>
+</body>
+</html>
