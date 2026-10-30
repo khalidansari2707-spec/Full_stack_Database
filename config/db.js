@@ -15,6 +15,7 @@ const MIN_POOL_SIZE = parseInt(process.env.MONGO_MIN_POOL_SIZE, 10) || 5;
 // Singleton client and db instances
 let client = null;
 let db = null;
+let connectionPromise = null;
 
 /**
  * Initialize indexes for high performance and integrity
@@ -54,37 +55,48 @@ async function connectDB() {
     return db;
   }
 
-  try {
-    console.log(`🔌 [Database] Connecting to MongoDB: ${MONGO_URI.replace(/\/\/([^:]+):([^@]+)@/, '//***:***@')}`);
-
-    client = new MongoClient(MONGO_URI, {
-      maxPoolSize: MAX_POOL_SIZE,
-      minPoolSize: MIN_POOL_SIZE,
-      connectTimeoutMS: 10000,
-      serverSelectionTimeoutMS: 5000,
-      serverApi: {
-        version: ServerApiVersion.v1,
-        strict: false,
-        deprecationErrors: true,
-      }
-    });
-
-    await client.connect();
-    db = client.db(DB_NAME);
-
-    // Verify ping
-    await db.command({ ping: 1 });
-    console.log(`🚀 [Database] Connected successfully to database: "${DB_NAME}"`);
-    console.log(`📊 [Database] Connection Pool: min=${MIN_POOL_SIZE}, max=${MAX_POOL_SIZE}`);
-
-    // Create required indexes
-    await initIndexes(db);
-
-    return db;
-  } catch (err) {
-    console.error('❌ [Database] Connection failed:', err.message);
-    throw err;
+  if (connectionPromise) {
+    return connectionPromise;
   }
+
+  connectionPromise = (async () => {
+    try {
+      console.log(`🔌 [Database] Connecting to MongoDB: ${MONGO_URI.replace(/\/\/([^:]+):([^@]+)@/, '//***:***@')}`);
+
+      client = new MongoClient(MONGO_URI, {
+        maxPoolSize: MAX_POOL_SIZE,
+        minPoolSize: MIN_POOL_SIZE,
+        connectTimeoutMS: 10000,
+        serverSelectionTimeoutMS: 5000,
+        serverApi: {
+          version: ServerApiVersion.v1,
+          strict: false,
+          deprecationErrors: true,
+        }
+      });
+
+      await client.connect();
+      db = client.db(DB_NAME);
+
+      // Verify ping
+      await db.command({ ping: 1 });
+      console.log(`🚀 [Database] Connected successfully to database: "${DB_NAME}"`);
+      console.log(`📊 [Database] Connection Pool: min=${MIN_POOL_SIZE}, max=${MAX_POOL_SIZE}`);
+
+      // Create required indexes
+      await initIndexes(db);
+
+      return db;
+    } catch (err) {
+      connectionPromise = null;
+      client = null;
+      db = null;
+      console.error('❌ [Database] Connection failed:', err.message);
+      throw err;
+    }
+  })();
+
+  return connectionPromise;
 }
 
 /**

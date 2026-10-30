@@ -1,0 +1,10 @@
+{
+  "name": "full-stack-database",
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.js"
+    }
+  ]
+}

@@ -37,20 +37,35 @@ if (process.env.NODE_ENV !== 'production') {
 // Serve Frontend Static Files from 'public' directory
 app.use(express.static(path.join(__dirname, 'public')));
 
-// API Routes
-app.use('/api/students', studentsRoutes);
-app.use('/api/drives', drivesRoutes);
-app.use('/api/stats', statsRoutes);
-
-// Health Check Endpoint
+// Health Check Endpoint (doesn't require DB)
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'healthy',
     uptime: process.uptime(),
     timestamp: new Date().toISOString(),
-    service: 'Campus Placement Management System'
+    service: 'Full Stack Database - Placement Management System'
   });
 });
+
+// Serverless DB Connection Middleware for API routes
+app.use('/api', async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error('🚨 [Database Connection Error]:', error.message);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to connect to MongoDB database. Please verify MONGO_URI configuration in environment variables.',
+      error: error.message
+    });
+  }
+});
+
+// API Routes
+app.use('/api/students', studentsRoutes);
+app.use('/api/drives', drivesRoutes);
+app.use('/api/stats', statsRoutes);
 
 // Fallback for SPA (Single Page Application routing)
 app.get('*', (req, res, next) => {
@@ -100,6 +115,8 @@ async function startServer() {
   }
 }
 
-startServer();
+if (require.main === module) {
+  startServer();
+}
 
 module.exports = app;

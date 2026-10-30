@@ -1,7 +1,7 @@
 {
-  "name": "campus-placement-management-system",
+  "name": "full-stack-database",
   "version": "1.0.0",
-  "description": "Production-grade Campus Placement Management System using Node.js, Express, and Native MongoDB Driver",
+  "description": "Full Stack Database Management System with Node.js, Express, and Native MongoDB Driver",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
